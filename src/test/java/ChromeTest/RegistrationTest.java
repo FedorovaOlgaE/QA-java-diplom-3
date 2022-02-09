@@ -1,15 +1,19 @@
 package ChromeTest;
 
+import Pages.LoginPageElements;
+import Pages.MainPageElements;
+import Pages.RegisterPageElements;
+import com.UserOperations;
 import com.codeborne.selenide.Configuration;
-import com.model.MainPageElements;
-import com.model.LoginPageElements;
-import com.model.RegisterPageElements;
 import io.qameta.allure.junit4.DisplayName;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+
+import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.open;
 
@@ -18,39 +22,44 @@ public class RegistrationTest {
     private String password;
     private String name;
     private String incorrectPass;
+    private UserOperations userOperations;
+    private Map<String, String> data;
 
     @Before
     public void beforeTest() {
         Configuration.browser = "chrome";
-        Configuration.startMaximized=true;
+        Configuration.startMaximized = true;
         email = RandomStringUtils.randomAlphabetic(10) + "@yandex.ru";
         password = RandomStringUtils.randomAlphabetic(10);
         name = RandomStringUtils.randomAlphabetic(10);
         incorrectPass = RandomStringUtils.randomAlphabetic(5);
+        userOperations = new UserOperations();
     }
+
+
     @Test
     @DisplayName("Успешная регистрация")
-    public void correctRegistrationTest(){
+    public void correctRegistrationTest() {
         MainPageElements mainPage = open("https://stellarburgers.nomoreparties.site/", MainPageElements.class);
         LoginPageElements loginPage = mainPage.login();
         RegisterPageElements registerPage = loginPage.register();
-        mainPage.loginButton.click();
-        loginPage.linkToRegisterPage.click();
+        mainPage.clickLoginButton();
+        loginPage.linkToRegisterPageCheck();
         registerPage.registrationFormFilled(name, email, password);
-        registerPage.registrationPageButton.click();
 
     }
+
     @Test
     @DisplayName("Не успешная регистрация. Ошибка для некорректного пароля")
-    public void incorrectRegistrationTest(){
+    public void incorrectRegistrationTest() {
         MainPageElements mainPage = open("https://stellarburgers.nomoreparties.site/", MainPageElements.class);
         LoginPageElements loginPage = mainPage.login();
         RegisterPageElements registerPage = loginPage.register();
-        mainPage.loginButton.click();
-        loginPage.linkToRegisterPage.click();
+        mainPage.clickLoginButton();
+        loginPage.linkToRegisterPageCheck();
         registerPage.registrationFormFilled(name, email, incorrectPass);
-        registerPage.registrationPageButton.click();
-        Assert.assertEquals(registerPage.incorrectPasswordWarn.getText(), "Некорректный пароль");
+        String actualText = registerPage.getRegisterErrorText();
+        Assert.assertEquals("Текст ошибки не совпадает","Некорректный пароль", actualText );
     }
 
 }
